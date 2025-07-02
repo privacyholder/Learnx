@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Course Details</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>LearnX Course</h1>
+    <button onclick="goBack()">Back to Courses</button>
+  </header>
+
+  <main>
+    <section class="course-content">
+      <h2 id="courseTitle">Course Title</h2>
+      <div id="videoContainer"></div>
+
+      <h3>Quick Quiz:</h3>
+
+      <div id="timerDisplay">Time Left: <span id="time">60</span>s</div>
+      <div id="progressBarContainer">
+        <div id="progressBar"></div>
+      </div>
+
+      <div id="quizContainer"></div>
+      <p id="scoreDisplay"></p>
+    </section>
+  </main>
+
+  <script>
+    const courseId = localStorage.getItem("currentCourse") || "Unknown";
+    document.getElementById("courseTitle").textContent = courseId.toUpperCase() + " Course";
+    localStorage.setItem("lastVisitedCourse", courseId); // Save last visited course
+
+    const videoContainer = document.getElementById("videoContainer");
+    const quizContainer = document.getElementById("quizContainer");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const timeDisplay = document.getElementById("time");
+    const progressBar = document.getElementById("progressBar");
+
+    const quizzes = {
+      html: {
+        video: "https://www.youtube.com/embed/dD2EISBDjWM",
+        questions: [
+          { question: "What does HTML stand for?", options: ["Hyper Trainer Marking Language", "Hyper Text Markup Language", "Highlevel Text Machine Language"], answer: "Hyper Text Markup Language" },
+          { question: "HTML is used to?", options: ["Style a webpage", "Structure content", "Add interactivity"], answer: "Structure content" }
+        ]
+      },
+      css: {
+        video: "https://www.youtube.com/embed/ESnrn1kAD4E",
+        questions: [
+          { question: "What does CSS stand for?", options: ["Cascading Style Sheets", "Colorful Style Syntax", "Code Styling Syntax"], answer: "Cascading Style Sheets" },
+          { question: "Which property is used to change text color?", options: ["text-style", "font-color", "color"], answer: "color" }
+        ]
+      },
+      js: {
+        video: "https://www.youtube.com/embed/VlPiVmYuoqw?start=3",
+        questions: [
+          { question: "Which company developed JavaScript?", options: ["Microsoft", "Netscape", "Google"], answer: "Netscape" },
+          { question: "Which symbol is used for comments in JS?", options: ["//", "<!-- -->", "#"], answer: "//" }
+        ]
+      },
+      react: {
+        video: "https://www.youtube.com/embed/bMknfKXIFA8",
+        questions: [
+          { question: "What is React primarily used for?", options: ["Server-side development", "Database management", "Building user interfaces"], answer: "Building user interfaces" },
+          { question: "What is a component in React?", options: ["Reusable UI element", "Database table", "Style class"], answer: "Reusable UI element" },
+          { question: "JSX stands for?", options: ["JavaScript XML", "Java Xtreme", "JS Extension"], answer: "JavaScript XML" },
+          { question: "What hook replaces lifecycle methods in React?", options: ["useState", "useEffect", "useClass"], answer: "useEffect" },
+          { question: "React is maintained by?", options: ["Google", "Facebook", "Microsoft"], answer: "Facebook" }
+        ]
+      },
+      node: {
+        video: "https://www.youtube.com/embed/TlB_eWDSMt4",
+        questions: [
+          { question: "What is Node.js?", options: ["Frontend library", "JavaScript runtime", "Database"], answer: "JavaScript runtime" },
+          { question: "Node.js runs on?", options: ["Browser", "Server", "Both"], answer: "Server" },
+          { question: "Which module is used to create a web server in Node.js?", options: ["http", "fs", "net"], answer: "http" },
+          { question: "Node.js uses which JavaScript engine?", options: ["SpiderMonkey", "V8", "Chakra"], answer: "V8" },
+          { question: "npm stands for?", options: ["Node Package Manager", "Network Package Module", "New Plugin Market"], answer: "Node Package Manager" }
+        ]
+      },
+      firebase: {
+        video: "https://www.youtube.com/embed/9kRgVxULbag",
+        questions: [
+          { question: "Firebase is developed by?", options: ["Facebook", "Google", "Microsoft"], answer: "Google" },
+          { question: "Firebase is mainly used for?", options: ["Hosting static files", "Real-time database", "File compression"], answer: "Real-time database" },
+          { question: "Which Firebase product is used for authentication?", options: ["Firestore", "Firebase Auth", "Firebase Login"], answer: "Firebase Auth" },
+          { question: "Firebase hosting supports?", options: ["Static sites", "Dynamic sites", "Both"], answer: "Static sites" },
+          { question: "Which rule language does Firebase use for database security?", options: ["SQL", "Firebase Rules", "JSON"], answer: "Firebase Rules" }
+        ]
+      },
+      c: {
+        video: "https://www.youtube.com/embed/KJgsSFOSQv0",
+        questions: [
+          { question: "C language was developed by?", options: ["Dennis Ritchie", "James Gosling", "Bjarne Stroustrup"], answer: "Dennis Ritchie" },
+          { question: "C is a?", options: ["High-level language", "Assembly language", "Low-level language"], answer: "High-level language" },
+          { question: "Which header file is used for input/output in C?", options: ["conio.h", "stdio.h", "math.h"], answer: "stdio.h" },
+          { question: "Main function in C returns?", options: ["int", "void", "char"], answer: "int" },
+          { question: "Which symbol is used for comments in C?", options: ["//", "/* */", "#"], answer: "/* */" }
+        ]
+      },
+      cpp: {
+        video: "https://www.youtube.com/embed/vLnPwxZdW4Y",
+        questions: [
+          { question: "C++ was developed by?", options: ["Bjarne Stroustrup", "Dennis Ritchie", "James Gosling"], answer: "Bjarne Stroustrup" },
+          { question: "Which feature is introduced in C++?", options: ["Object Oriented", "Functional Programming", "Assembly"], answer: "Object Oriented" },
+          { question: "Which operator is used for scope resolution in C++?", options: ["::", ".", ":"], answer: "::" },
+          { question: "Which keyword is used for inheritance?", options: ["inherit", "extends", "public"], answer: "public" },
+          { question: "What is cout used for?", options: ["Output", "Input", "Loop"], answer: "Output" }
+        ]
+      },
+      communication: {
+        video: "",
+        questions: [
+          { question: "Communication is?", options: ["One-way", "Two-way", "None"], answer: "Two-way" },
+          { question: "Non-verbal communication includes?", options: ["Emails", "Gestures", "Calls"], answer: "Gestures" },
+          { question: "Listening skills are part of?", options: ["Speaking", "Understanding", "Communication"], answer: "Communication" },
+          { question: "Effective communication includes?", options: ["Noise", "Clarity", "Jargon"], answer: "Clarity" },
+          { question: "Body language is?", options: ["Verbal", "Non-verbal", "Noise"], answer: "Non-verbal" }
+        ]
+      }
+    };
+
+    let score = 0;
+    let quizIndex = 0;
+    let timer;
+    let timeLeft = 60;
+
+    const currentQuiz = quizzes[courseId];
+
+    if (currentQuiz) {
+      videoContainer.innerHTML = `<iframe src="${currentQuiz.video}" allowfullscreen></iframe>`;
+
+      function updateTimer() {
+        timeLeft--;
+        timeDisplay.textContent = timeLeft;
+        if (timeLeft <= 0) {
+          alert("Time's up!");
+          nextQuestion(false);
+        }
+      }
+
+      function startTimer() {
+        clearInterval(timer);
+        timeLeft = 60;
+        timeDisplay.textContent = timeLeft;
+        timer = setInterval(updateTimer, 1000);
+      }
+
+      function loadQuestion() {
+        if (quizIndex < currentQuiz.questions.length) {
+          startTimer();
+          const q = currentQuiz.questions[quizIndex];
+          quizContainer.innerHTML = `<p>${q.question}</p>` +
+            q.options.map(option => `<button onclick="checkAnswer('${option.replace(/'/g, "\\'")}')">${option}</button>`).join("<br><br>");
+          updateProgressBar();
+        } else {
+          clearInterval(timer);
+          quizContainer.innerHTML = `<h4>Quiz Completed!</h4>`;
+          scoreDisplay.textContent = `Your Score: ${score}/${currentQuiz.questions.length}`;
+          localStorage.setItem(courseId + "_completed", true);
+          localStorage.setItem(courseId + "_score", score);
+        }
+      }
+
+      function checkAnswer(selected) {
+        const correct = currentQuiz.questions[quizIndex].answer;
+        if (selected === correct) {
+          alert("Correct!");
+          score++;
+        } else {
+          alert("Incorrect. Correct answer: " + correct);
+        }
+        nextQuestion(true);
+      }
+
+      function nextQuestion(manual = true) {
+        clearInterval(timer);
+        quizIndex++;
+        loadQuestion();
+      }
+
+      function updateProgressBar() {
+        const percent = ((quizIndex) / currentQuiz.questions.length) * 100;
+        progressBar.style.width = percent + "%";
+      }
+
+      loadQuestion();
+    } else {
+      quizContainer.innerHTML = `<p>Course not found.</p>`;
+    }
+
+    function goBack() {
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
